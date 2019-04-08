@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "libreips.h"
 
 #define TRUE (1)
@@ -62,7 +63,7 @@ Patch patch_init()
 
 void patch_free(Patch* const patch)
 {
-    int i;
+    unsigned int i;
 
     if (patch->records)
     {
@@ -75,7 +76,7 @@ void patch_free(Patch* const patch)
 
 int push_record(Patch* const patch, Record* const record)
 {
-    Patch* new_chunk;
+    Record** new_chunk;
 
     if (patch->num_records > 0 && patch->num_records % RECORD_CHUNK_SIZE == 0)
     {
@@ -101,7 +102,7 @@ int push_record(Patch* const patch, Record* const record)
 
 int push_byte(Record* const record, const unsigned char value)
 {
-    Record* new_chunk;
+    unsigned char* new_chunk;
 
     if (record->data == NULL || record->size == 0xFFFF)
     {
