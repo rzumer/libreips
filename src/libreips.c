@@ -227,13 +227,13 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
         }
 
         /* Offset */
-        cur_record.offset =
-            *(output + i++) << 16 & 0x00FF0000 |
-            *(output + i++) <<  8 & 0x0000FF00 |
-            *(output + i++)       & 0x000000FF;
+        cur_record.offset = *(patch + i) |
+            (unsigned int)*(patch + i + 1) << 8 |
+            (unsigned int)*(patch + i + 2) << 16;
+        i += 3;
 
         /* Size */
-        cur_record.size = *((unsigned short*)(output + i));
+        cur_record.size = *((unsigned short*)(patch + i));
         i += 2;
 
         if (cur_record.size > 0) /* regular record */
@@ -257,7 +257,7 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
             }
 
             /* RLE Size */
-            cur_record.size = *((unsigned short*)(output + i));
+            cur_record.size = *((unsigned short*)(patch + i));
             i += 2;
 
             if (cur_record.offset + cur_record.size > original_size)
