@@ -38,7 +38,7 @@ Record record_init(const unsigned int offset)
 
     assert(offset <= 0xFFFFFF);
 
-    record.data = malloc(DATA_CHUNK_SIZE);
+    record.data = malloc(DATA_CHUNK_SIZE * sizeof(unsigned char));
 
     return record;
 }
@@ -57,7 +57,7 @@ Patch patch_init()
 {
     Patch patch = { 0 };
 
-    patch.records = malloc(RECORD_CHUNK_SIZE);
+    patch.records = malloc(RECORD_CHUNK_SIZE * sizeof(Record*));
 
     return patch;
 }
