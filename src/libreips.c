@@ -185,12 +185,13 @@ unsigned char* lips_create_patch(const unsigned char* const original, const unsi
     for (i = 0; i < patch.num_records; i++)
     {
         /* Offset */
-        *((unsigned int*)(output + j)) = patch.records[i]->offset;
-        j += 3;
+        *(output + j++) = (unsigned char)(patch.records[i]->offset >> 16);
+        *(output + j++) = (unsigned char)(patch.records[i]->offset >> 8);
+        *(output + j++) = (unsigned char)(patch.records[i]->offset);
 
         /* Size */
-        *((unsigned short*)(output + j)) = patch.records[i]->size;
-        j += 2;
+        *(output + j++) = (unsigned char)(patch.records[i]->size >> 8);
+        *(output + j++) = (unsigned char)(patch.records[i]->size);
 
         /* Data */
         memcpy(output + j, patch.records[i]->data, patch.records[i]->size);
@@ -227,13 +228,11 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
         }
 
         /* Offset */
-        cur_record.offset = *(patch + i) |
-            (unsigned int)*(patch + i + 1) << 8 |
-            (unsigned int)*(patch + i + 2) << 16;
+        cur_record.offset = (unsigned int)*(patch + i) << 16 | (unsigned int)*(patch + i + 1) << 8 | *(patch + i + 2);
         i += 3;
 
         /* Size */
-        cur_record.size = *((unsigned short*)(patch + i));
+        cur_record.size = (unsigned short)*(patch + i) << 8 | *(patch + i + 1);
         i += 2;
 
         if (cur_record.size > 0) /* regular record */
@@ -257,7 +256,7 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
             }
 
             /* RLE Size */
-            cur_record.size = *((unsigned short*)(patch + i));
+            cur_record.size = (unsigned short)*(patch + i) << 8 | *(patch + i + 1);
             i += 2;
 
             if (cur_record.offset + cur_record.size > original_size)
