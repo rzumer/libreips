@@ -6,8 +6,8 @@
 #define TRUE (1)
 #define FALSE (0)
 
-#define HEADER "PATCH"
-#define FOOTER "EOF"
+#define HEADER (char[]) { 'P', 'A', 'T', 'C', 'H' }
+#define FOOTER (char[]) { 'E', 'O', 'F' }
 
 /* arbitrary chunk sizes */
 #define RECORD_CHUNK_SIZE (128)
