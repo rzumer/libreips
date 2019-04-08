@@ -10,7 +10,7 @@
 #define FOOTER (char[]) { 'E', 'O', 'F' }
 
 /* arbitrary chunk sizes */
-#define RECORD_CHUNK_SIZE (128)
+#define RECORD_CHUNK_SIZE (2048)
 #define DATA_CHUNK_SIZE (1024)
 
 #define RECORD_HEADER_LENGTH (5)
