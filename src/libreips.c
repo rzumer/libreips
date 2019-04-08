@@ -128,14 +128,15 @@ int push_byte(Record* const record, const unsigned char value)
     return TRUE;
 }
 
-unsigned long lips_create_patch(const unsigned char* const original, const unsigned char* const modified,
-    unsigned char* output, const unsigned long size)
+unsigned char* lips_create_patch(const unsigned char* const original, const unsigned char* const modified,
+    const unsigned long size, unsigned long* const output_size)
 {
     unsigned long i = 0, j = 0;
     unsigned char original_byte = 0, modified_byte = 0;
     Patch patch = patch_init();
     Record cur_record = EMPTY_RECORD;
     unsigned long patch_size = sizeof(HEADER) + sizeof(FOOTER);
+    unsigned char* output;
 
     assert(patch_size == 8);
 
@@ -173,7 +174,7 @@ unsigned long lips_create_patch(const unsigned char* const original, const unsig
     }
 
     /* Second pass (write) */
-    output = malloc(patch_size);
+    output = malloc(patch_size * sizeof(unsigned char));
 
     /* Header */
     memcpy(output, HEADER, sizeof(HEADER));
@@ -198,7 +199,9 @@ unsigned long lips_create_patch(const unsigned char* const original, const unsig
     j += sizeof(FOOTER);
 
     patch_free(&patch);
-    return j;
+
+    *output_size = j;
+    return output;
 }
 
 unsigned char* lips_apply_patch(unsigned char* original, unsigned char* patch, unsigned long size)

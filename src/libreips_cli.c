@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        output_size = lips_create_patch(original_bytes, operand_bytes, output_bytes, original_size);
+        output_bytes = lips_create_patch(original_bytes, operand_bytes, original_size, &output_size);
     }
 
     fwrite(output_bytes, 1, output_size, output_file);
