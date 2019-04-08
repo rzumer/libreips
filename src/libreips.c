@@ -195,6 +195,7 @@ unsigned char* lips_create_patch(const unsigned char* const original, const unsi
 
         /* Data */
         memcpy(output + j, patch.records[i]->data, patch.records[i]->size);
+        j += patch.records[i]->size;
     }
 
     /* Footer */
@@ -245,7 +246,6 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
 
             /* Data */
             memcpy(output + cur_record.offset, patch + i, cur_record.size);
-
             i += cur_record.size;
         }
         else /* RLE record */
