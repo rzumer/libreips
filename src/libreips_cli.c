@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     }
 
     /* Open files to read */
-    original_file = fopen(argv[2], "r");
+    original_file = fopen(argv[2], "rb");
 
     if (!original_file)
     {
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    operand_file = fopen(argv[3], "r");
+    operand_file = fopen(argv[3], "rb");
 
     if (!operand_file)
     {
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
     fclose(operand_file);
 
     /* Open the output file to ensure that it is writable */
-    output_file = fopen(argv[4], "w");
+    output_file = fopen(argv[4], "wb");
 
     if (!output_file)
     {
