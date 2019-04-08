@@ -30,6 +30,27 @@ typedef struct Patch
     Record** records;
 } Patch;
 
+Record record_init(const unsigned int offset)
+{
+    Record record = { offset };
+
+    assert(offset <= 0xFFFFFF);
+
+    record.data = malloc(DATA_CHUNK_SIZE);
+
+    return record;
+}
+
+void record_free(Record* const record)
+{
+    if (record->data)
+    {
+        free(record->data);
+    }
+
+    free(record);
+}
+
 Patch patch_init()
 {
     Patch patch = { 0 };
@@ -50,27 +71,6 @@ void patch_free(Patch* const patch)
             record_free(patch->records[i]);
         }
     }
-}
-
-Record record_init(const unsigned int offset)
-{
-    Record record = { offset };
-
-    assert(offset <= 0xFFFFFF);
-
-    record.data = malloc(DATA_CHUNK_SIZE);
-
-    return record;
-}
-
-void record_free(Record* const record)
-{
-    if (record->data)
-    {
-        free(record->data);
-    }
-
-    free(record);
 }
 
 int push_record(Patch* const patch, Record* const record)
