@@ -204,7 +204,8 @@ unsigned char* lips_create_patch(const unsigned char* const original, const unsi
     return output;
 }
 
-unsigned char* lips_apply_patch(unsigned char* original, unsigned char* patch, unsigned long size)
+unsigned char* lips_apply_patch(const unsigned char* const original, const unsigned char* const patch,
+    unsigned long size)
 {
     unsigned long i = 0, j = 0;
     unsigned char* output = malloc(size);

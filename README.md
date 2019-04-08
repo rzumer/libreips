@@ -10,7 +10,8 @@ The API is exposed by `libreips.h` and is defined as follows:
 unsigned char* lips_create_patch(const unsigned char* const original, const unsigned char* const modified,
     const unsigned long size, unsigned long* const output_size);
 
-unsigned char* lips_apply_patch(unsigned char* original, unsigned char* patch, unsigned long size);
+unsigned char* lips_apply_patch(const unsigned char* const original, const unsigned char* const patch,
+    unsigned long size);
 ```
 
 ## CLI Usage
