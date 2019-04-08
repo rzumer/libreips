@@ -82,19 +82,11 @@ int push_record(Patch* const patch, Record* const record)
 
     if (patch->num_records > 0 && patch->num_records % RECORD_CHUNK_SIZE == 0)
     {
-        new_chunk = realloc(patch->records, patch->num_records + RECORD_CHUNK_SIZE);
-
-        if (new_chunk)
-        {
-            patch->records = new_chunk;
-        }
-        else
-        {
-            return FALSE;
-        }
+        new_chunk = realloc(patch->records, (patch->num_records + RECORD_CHUNK_SIZE) * sizeof(Record*));
+        patch->records = new_chunk;
     }
 
-    if (patch->records == NULL)
+    if (!patch->records)
     {
         return FALSE;
     }
@@ -114,7 +106,7 @@ int push_byte(Record* const record, const unsigned char value)
 
     if (record->size > 0 && record->size % DATA_CHUNK_SIZE == 0)
     {
-        new_chunk = realloc(record->data, record->size + DATA_CHUNK_SIZE);
+        new_chunk = realloc(record->data, (record->size + DATA_CHUNK_SIZE) * sizeof(unsigned char));
 
         if (new_chunk)
         {
