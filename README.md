@@ -14,6 +14,22 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
     const unsigned long original_size, const unsigned long patch_size);
 ```
 
+## Features
+
+* Fully compliant decoder
+* Licensed under MIT
+* Portable
+* Simple design
+    * One function to create or apply a patch
+    * Implementation under 300 lines
+    * CLI under 200 lines
+
+## Caveats
+
+* Limited encoder
+    * No RLE
+    * No lookahead to reduce header overhead
+
 ## CLI Usage
 
 A CLI tool is available for testing and convenience. Usage is as follows:
