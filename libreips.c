@@ -12,6 +12,7 @@
 #define DATA_CHUNK_SIZE (1024)
 
 #define RECORD_HEADER_LENGTH (5)
+#define RLE_RECORD_LENGTH (8)
 
 #define EMPTY_RECORD (Record) { 0xFFFFFFFF, 0, 0, 0 }
 
@@ -193,4 +194,66 @@ unsigned long lips_create_patch(const unsigned char* const original, const unsig
 
     patch_free(&patch);
     return j;
+}
+
+unsigned char* lips_apply_patch(unsigned char* original, unsigned char* patch, unsigned long size)
+{
+    unsigned long i = 0, j = 0;
+    unsigned char* output = malloc(size);
+    Record cur_record = EMPTY_RECORD;
+
+    memcpy(output, original, size);
+
+    /* Header */
+    assert(memcmp(patch, HEADER, sizeof(HEADER)) == 0);
+    i += sizeof(HEADER);
+
+    while (i + RECORD_HEADER_LENGTH < size)
+    {
+        /* Offset */
+        cur_record.offset =
+            *(output + i++) << 16 & 0x00FF0000 |
+            *(output + i++) <<  8 & 0x0000FF00 |
+            *(output + i++)       & 0x000000FF;
+
+        /* Size */
+        cur_record.size = *((unsigned short*)(output + i));
+        i += 2;
+
+        if (cur_record.size > 0) /* regular record */
+        {
+            if (i + cur_record.size > size)
+            {
+                break;
+            }
+
+            /* Data */
+            memcpy(output + cur_record.offset, patch + i, cur_record.size);
+
+            i += cur_record.size;
+        }
+        else /* RLE record */
+        {
+            if (i + RLE_RECORD_LENGTH - RECORD_HEADER_LENGTH > size)
+            {
+                break;
+            }
+
+            /* RLE Size */
+            cur_record.size = *((unsigned short*)(output + i));
+            i += 2;
+
+            /* Data */
+            for (j = 0; j < cur_record.size; j++)
+            {
+                *(output + cur_record.offset) = *(patch + i);
+            }
+
+            i++;
+        }
+    }
+
+    assert(memcmp(patch + i, FOOTER, sizeof(FOOTER)) == 0);
+
+    return output;
 }
