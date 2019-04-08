@@ -158,8 +158,11 @@ unsigned long lips_create_patch(const unsigned char* const original, const unsig
         }
         else
         {
-            push_record(&patch, &cur_record);
-            cur_record = EMPTY_RECORD;
+            if (cur_record.data)
+            {
+                push_record(&patch, &cur_record);
+                cur_record = EMPTY_RECORD;
+            }
         }
     }
 
