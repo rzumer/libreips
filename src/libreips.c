@@ -16,8 +16,6 @@
 #define RECORD_HEADER_LENGTH (5)
 #define RLE_RECORD_LENGTH (8)
 
-#define EMPTY_RECORD (Record) { 0xFFFFFFFF, 0, 0, 0 }
-
 typedef struct Record
 {
     unsigned int offset;
@@ -32,13 +30,16 @@ typedef struct Patch
     Record** records;
 } Patch;
 
-Record record_init(const unsigned int offset)
+Record* record_init(const unsigned int offset)
 {
-    Record record = { offset };
+    Record* record;
 
     assert(offset <= 0xFFFFFF);
 
-    record.data = malloc(DATA_CHUNK_SIZE * sizeof(unsigned char));
+    record = malloc(sizeof(Record));
+    *record = (Record) { offset, 0, 0, 0 };
+
+    record->data = malloc(DATA_CHUNK_SIZE * sizeof(unsigned char));
 
     return record;
 }
@@ -55,7 +56,7 @@ void record_free(Record* const record)
 
 Patch patch_init()
 {
-    Patch patch = { 0 };
+    Patch patch = { 0, 0 };
 
     patch.records = malloc(RECORD_CHUNK_SIZE * sizeof(Record*));
 
@@ -93,12 +94,13 @@ int push_record(Patch* const patch, Record* const record)
         }
     }
 
-    if (patch->records != NULL)
+    if (patch->records == NULL)
     {
-        *(patch->records + patch->num_records++) = record;
+        return FALSE;
     }
 
-    return FALSE;
+    *(patch->records + patch->num_records++) = record;
+    return TRUE;
 }
 
 int push_byte(Record* const record, const unsigned char value)
@@ -134,7 +136,7 @@ unsigned char* lips_create_patch(const unsigned char* const original, const unsi
     unsigned long i = 0, j = 0;
     unsigned char original_byte = 0, modified_byte = 0;
     Patch patch = patch_init();
-    Record cur_record = EMPTY_RECORD;
+    Record* cur_record = 0;
     unsigned long patch_size = sizeof(HEADER) + sizeof(FOOTER);
     unsigned char* output;
 
@@ -148,29 +150,29 @@ unsigned char* lips_create_patch(const unsigned char* const original, const unsi
 
         if (original_byte != modified_byte)
         {
-            if (!cur_record.data)
+            if (!cur_record)
             {
                 cur_record = record_init(i);
                 patch_size += RECORD_HEADER_LENGTH;
             }
 
-            push_byte(&cur_record, modified_byte);
+            push_byte(cur_record, modified_byte);
             patch_size++;
         }
         else
         {
-            if (cur_record.data)
+            if (cur_record)
             {
-                push_record(&patch, &cur_record);
-                cur_record = EMPTY_RECORD;
+                push_record(&patch, cur_record);
+                cur_record = 0;
             }
         }
     }
 
     /* Push any remaining record */
-    if (cur_record.data)
+    if (cur_record)
     {
-        push_record(&patch, &cur_record);
+        push_record(&patch, cur_record);
     }
 
     /* Second pass (write) */
@@ -209,7 +211,7 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
 {
     unsigned long i = 0, j = 0;
     unsigned char* output = malloc(size);
-    Record cur_record = EMPTY_RECORD;
+    Record cur_record = { 0, 0, 0, 0 };
 
     memcpy(output, original, size);
 
