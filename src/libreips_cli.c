@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     /* Apply/Create */
     if (apply)
     {
-        output_bytes = lips_apply_patch(original_bytes, operand_bytes, original_size);
+        output_bytes = lips_apply_patch(original_bytes, operand_bytes, original_size, cur_file_size);
         output_size = original_size;
     }
     else
@@ -127,14 +127,30 @@ int main(int argc, char* argv[])
         output_bytes = lips_create_patch(original_bytes, operand_bytes, original_size, &output_size);
     }
 
-    fwrite(output_bytes, 1, output_size, output_file);
-    fclose(output_file);
+    if (output_bytes)
+    {
+        fwrite(output_bytes, 1, output_size, output_file);
+        printf("Successfully wrote %lu bytes.\n", output_size);
+    }
 
+    fclose(output_file);
     free(output_bytes);
     free(operand_bytes);
     free(original_bytes);
 
-    printf("Successfully wrote %lu bytes.\n", output_size);
+    if (!output_bytes)
+    {
+        if (apply)
+        {
+            printf("Internal error on patch application.\n");
+            return 2;
+        }
+        else
+        {
+            printf("Internal error on patch creation.\n");
+            return 2;
+        }
+    }
 
     return 0;
 }

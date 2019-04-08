@@ -207,20 +207,25 @@ unsigned char* lips_create_patch(const unsigned char* const original, const unsi
 }
 
 unsigned char* lips_apply_patch(const unsigned char* const original, const unsigned char* const patch,
-    unsigned long size)
+    const unsigned long original_size, const unsigned long patch_size)
 {
     unsigned long i = 0, j = 0;
-    unsigned char* output = malloc(size);
+    unsigned char* output = malloc(original_size);
     Record cur_record = { 0, 0, 0, 0 };
 
-    memcpy(output, original, size);
+    memcpy(output, original, original_size);
 
     /* Header */
     assert(memcmp(patch, HEADER, sizeof(HEADER)) == 0);
     i += sizeof(HEADER);
 
-    while (i + RECORD_HEADER_LENGTH < size)
+    while (i + RECORD_HEADER_LENGTH < patch_size)
     {
+        if (memcmp(patch + i, FOOTER, sizeof(FOOTER)) == 0)
+        {
+            break;
+        }
+
         /* Offset */
         cur_record.offset =
             *(output + i++) << 16 & 0x00FF0000 |
@@ -233,9 +238,10 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
 
         if (cur_record.size > 0) /* regular record */
         {
-            if (i + cur_record.size > size)
+            if (i + cur_record.size > patch_size ||
+                cur_record.offset + cur_record.size > original_size)
             {
-                break;
+                return 0;
             }
 
             /* Data */
@@ -245,14 +251,19 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
         }
         else /* RLE record */
         {
-            if (i + RLE_RECORD_LENGTH - RECORD_HEADER_LENGTH > size)
+            if (i + RLE_RECORD_LENGTH - RECORD_HEADER_LENGTH > patch_size)
             {
-                break;
+                return 0;
             }
 
             /* RLE Size */
             cur_record.size = *((unsigned short*)(output + i));
             i += 2;
+
+            if (cur_record.offset + cur_record.size > original_size)
+            {
+                return 0;
+            }
 
             /* Data */
             for (j = 0; j < cur_record.size; j++)
