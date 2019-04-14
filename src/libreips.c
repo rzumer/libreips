@@ -259,11 +259,12 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
                 if (patch_size - i == 1 && cur_record.size == 1)
                 {
                     /* Cannot disambiguate between EOF + truncation offset
-                    and final single byte record at 0x454f46
+                    and final single byte record at 0x454F46
 
-                    Assume truncation, because an offset at 0x454f46 is a
+                    Assume truncation, because an offset at 0x454F46 is a
                     far less common case, and return the current result */
 
+                    i -= 2; /* Rewind the read index to parse the truncation offset */
                     break;
                 }
             }
