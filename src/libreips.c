@@ -206,6 +206,7 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
     unsigned long i = 0, j = 0;
     unsigned char* output = malloc(original_size);
     Record cur_record = { 0, 0, 0, 0 };
+    int hit_eof = FALSE;
 
     memcpy(output, original, original_size);
 
@@ -217,7 +218,7 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
     {
         if (memcmp(patch + i, FOOTER, sizeof(FOOTER)) == 0)
         {
-            break;
+            hit_eof = TRUE;
         }
 
         /* Offset */
@@ -233,7 +234,24 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
             if (i + cur_record.size > patch_size ||
                 cur_record.offset + cur_record.size > original_size)
             {
-                return 0;
+                /* An EOF marker was read, and the following content is invalid,
+                so assume a valid EOF marker followed by garbage */
+                if (hit_eof) break;
+                else return 0;
+            }
+
+            if (hit_eof)
+            {
+                if (patch_size - i == 1 && cur_record.size == 1)
+                {
+                    /* Cannot disambiguate between EOF + truncation offset
+                    and final single byte record at 0x454f46
+
+                    Assume truncation, because an offset at 0x454f46 is a
+                    far less common case, and return the current result */
+
+                    break;
+                }
             }
 
             /* Data */
@@ -244,7 +262,10 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
         {
             if (i + RLE_RECORD_LENGTH - RECORD_HEADER_LENGTH > patch_size)
             {
-                return 0;
+                /* An EOF marker was read, and the following content is invalid,
+                so assume a valid EOF marker followed by garbage */
+                if (hit_eof) break;
+                else return 0;
             }
 
             /* RLE Size */
@@ -253,7 +274,10 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
 
             if (cur_record.offset + cur_record.size > original_size)
             {
-                return 0;
+                /* An EOF marker was read, and the following content is invalid,
+                so assume a valid EOF marker followed by garbage */
+                if (hit_eof) break;
+                else return 0;
             }
 
             /* Data */
@@ -265,6 +289,8 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
             i++;
         }
     }
+
+    /* TODO: if there are 3+ bytes left to read, attempt to parse and process a truncation offset */
 
     assert(memcmp(patch + i, FOOTER, sizeof(FOOTER)) == 0);
 
