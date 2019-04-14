@@ -245,28 +245,16 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
 
         if (cur_record.size > 0) /* regular record */
         {
-            if (i + cur_record.size > patch_size ||
+            if (i + cur_record.size + sizeof(FOOTER) > patch_size ||
                 cur_record.offset + cur_record.size > original_size)
             {
-                /* An EOF marker was read, and the following content is invalid,
-                so assume a valid EOF marker followed by garbage */
-                if (hit_eof) break;
-                else return 0;
-            }
-
-            if (hit_eof)
-            {
-                if (patch_size - i == 1 && cur_record.size == 1)
+                if (hit_eof)
                 {
-                    /* Cannot disambiguate between EOF + truncation offset
-                    and final single byte record at 0x454F46
-
-                    Assume truncation, because an offset at 0x454F46 is a
-                    far less common case, and return the current result */
-
-                    i -= 2; /* Rewind the read index to parse the truncation offset */
+                    i -= 5; /* Rewind through the record size and offset */
                     break;
                 }
+
+                return 0;
             }
 
             /* Data */
@@ -275,12 +263,15 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
         }
         else /* RLE record */
         {
-            if (i + RLE_RECORD_LENGTH - RECORD_HEADER_LENGTH > patch_size)
+            if (i + RLE_RECORD_LENGTH - RECORD_HEADER_LENGTH + sizeof(FOOTER) > patch_size)
             {
-                /* An EOF marker was read, and the following content is invalid,
-                so assume a valid EOF marker followed by garbage */
-                if (hit_eof) break;
-                else return 0;
+                if (hit_eof)
+                {
+                    i -= 5; /* Rewind through the record size and offset */
+                    break;
+                }
+
+                return 0;
             }
 
             /* RLE Size */
@@ -289,10 +280,13 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
 
             if (cur_record.offset + cur_record.size > original_size)
             {
-                /* An EOF marker was read, and the following content is invalid,
-                so assume a valid EOF marker followed by garbage */
-                if (hit_eof) break;
-                else return 0;
+                if (hit_eof)
+                {
+                    i -= 7; /* Rewind through the RLE size, record size, and offset */
+                    break;
+                }
+
+                return 0;
             }
 
             /* Data */
@@ -303,11 +297,13 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
 
             i++;
         }
+
+        hit_eof = FALSE;
     }
 
-    /* TODO: if there are 3+ bytes left to read, attempt to parse and process a truncation offset */
-
     assert(memcmp(patch + i, FOOTER, sizeof(FOOTER)) == 0);
+
+    /* TODO: if there are 3+ bytes left to read, attempt to parse and process a truncation offset */
 
     return output;
 }
