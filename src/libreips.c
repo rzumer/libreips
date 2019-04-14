@@ -144,7 +144,21 @@ unsigned char* lips_create_patch(const unsigned char* const original, const unsi
         {
             if (!cur_record)
             {
-                cur_record = record_init(i);
+                if (i == 0x454F46)
+                {
+                    /* This offset can be mistaken for an EOF marker,
+                    so if a record is found to begin here,
+                    write it from the previous byte instead */
+
+                    cur_record = record_init(i - 1);
+                    push_byte(cur_record, *(original + i - 1));
+                    patch_size++;
+                }
+                else
+                {
+                    cur_record = record_init(i);
+                }
+
                 patch_size += RECORD_HEADER_LENGTH;
             }
 
