@@ -21,7 +21,7 @@ unsigned char* lips_apply_patch(const unsigned char* const original, const unsig
 * Portable
 * Simple design
     * One function to create or apply a patch
-    * Implementation under 300 lines
+    * Implementation near 300 lines
     * CLI under 200 lines
 
 ## Caveats
