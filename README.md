@@ -39,4 +39,4 @@ libreips_cli c <original> <modified> <output>
 libreips_cli a <original> <patch> <output>
 ```
 
-Where `c` creates and `a` applies a pastch.
+Where `c` creates and `a` applies a patch.
